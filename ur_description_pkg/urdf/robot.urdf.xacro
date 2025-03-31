@@ -240,4 +240,21 @@
         <parent link="flange"/>
         <child link="tool0"/>
     </joint>
+    <gazebo reference="wrist_3_link-ft_frame">
+      <provideFeedback>true</provideFeedback>
+    </gazebo>
+
+    <gazebo>
+      <plugin name="ft_sensor_jt" filename="libgazebo_ros_ft_sensor.so">
+        <ros>
+          <namespace>ft_sensors</namespace>
+          <remapping>wrench:=/jt</remapping>
+        </ros>
+        <joint_name>wrist_3_link-ft_frame</joint_name>
+        <body_name>wrist_3_link</body_name>
+        <frame_name>ft_frame</frame_name>
+        <update_rate>50.0</update_rate>
+        <gaussian_noise>0.001</gaussian_noise>
+      </plugin>
+    </gazebo>
 </robot>
