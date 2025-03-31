@@ -1,0 +1,31 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 60
+
+    arm_cont:
+      type: joint_trajectory_controller/JointTrajectoryController
+    
+    joint_broad:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+arm_cont:
+  ros__parameters:
+
+    joints:
+      - shoulder_pan_joint
+      - shoulder_lift_joint
+      - elbow_joint
+      - wrist_1_joint
+      - wrist_2_joint
+      - wrist_3_joint
+
+    command_interfaces:
+      - position
+      # - velocity
+    
+    state_interfaces:
+      - position
+      - velocity
+
+    open_loop_controller: true
+    allow_integration_in_goal_trajectory: true
