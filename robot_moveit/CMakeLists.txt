@@ -33,7 +33,7 @@ install(TARGETS simple_moveit_interface
 )
 
 add_executable(pos_goal src/pos_goal.cpp)
-ament_target_dependencies(pos_goal rclcpp moveit_ros_planning_interface trajectory_msgs builtin_interfaces  geometry_msgs visualization_msgs)
+ament_target_dependencies(pos_goal rclcpp moveit_ros_planning_interface trajectory_msgs builtin_interfaces  visualization_msgs)
 
 install(TARGETS pos_goal
   DESTINATION lib/${PROJECT_NAME}
@@ -99,6 +99,28 @@ PLUGIN "robot_moveit::TaskServer"
 EXECUTABLE task_server_node
 )
 
+# robot_server
+add_library(robot_server SHARED src/robot_server.cpp)
+target_include_directories(robot_server  PRIVATE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+)
+target_compile_definitions(robot_server
+PRIVATE "ROBOT_SERVER_CPP_BUILDING_DLL"
+)
+ament_target_dependencies(robot_server
+  "custom_service"
+  "rclcpp"
+  "rclcpp_action"
+  "rclcpp_components"
+  "moveit_ros_planning_interface"
+  "visualization_msgs"
+)
+rclcpp_components_register_node(robot_server
+PLUGIN "robot_moveit::RobotServer"
+EXECUTABLE robot_server_node
+)
+
 install(
   DIRECTORY launch config
   DESTINATION share/${PROJECT_NAME}
@@ -108,6 +130,7 @@ install(TARGETS
  action_server
  action_client
  task_server
+ robot_server
  ARCHIVE DESTINATION lib
  LIBRARY DESTINATION lib
  RUNTIME DESTINATION bin

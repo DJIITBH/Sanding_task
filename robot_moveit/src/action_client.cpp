@@ -16,11 +16,17 @@ public:
     {
         client_ = rclcpp_action::create_client<custom_service::action::Fibonacci>(this, "fibonacci"); //this, name of action server
         timer_ =create_wall_timer(1s, std::bind(&ActionClient::timer_callback, this));
+        cancel_timer_ = this->create_wall_timer(5s, std::bind(&ActionClient::cancel_goal, this));
+
     }
 private:
 // create a clieny object and pass comm interface in the template class!
     rclcpp_action::Client<custom_service::action::Fibonacci>::SharedPtr client_;
     rclcpp::TimerBase::SharedPtr timer_;
+    rclcpp::TimerBase::SharedPtr cancel_timer_;
+    rclcpp_action::ClientGoalHandle<custom_service::action::Fibonacci>::SharedPtr goal_handle_;
+    rclcpp::executors::SingleThreadedExecutor callback_group_executor_;
+
 
     void timer_callback()
     {
@@ -33,7 +39,7 @@ private:
             rclcpp::shutdown();
         }
         auto goal_msg = custom_service::action::Fibonacci::Goal();
-        goal_msg.order = 10;
+        goal_msg.order = 50;
         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "sending goal");
 
         auto send_goal_options = rclcpp_action::Client<custom_service::action::Fibonacci>::SendGoalOptions();
@@ -49,11 +55,53 @@ private:
         if(!goal_handle)
         {
             RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "goal was rejected by server");
+
         }
         else{
+            goal_handle_ = goal_handle;
             RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "goal was accepted by server");
         }
     }
+
+    void cancel_goal()
+    {
+    if (!goal_handle_)  // Check if goal exists before trying to cancel
+    {
+        RCLCPP_WARN(this->get_logger(), "No active goal to cancel.");
+        return;
+    }
+
+    RCLCPP_INFO(this->get_logger(), "Requesting goal cancellation...");
+
+    auto future_cancel = client_->async_cancel_goal(goal_handle_);
+
+    cancel_timer_->cancel(); // Stop the cancel timer after use
+
+    // rclcpp::executors::SingleThreadedExecutor executor;
+
+    // // Wait for the cancel response
+    // if (executor.spin_until_future_complete(future_cancel, std::chrono::seconds(2)) != 
+    //     rclcpp::FutureReturnCode::SUCCESS)
+    // {
+    //     RCLCPP_ERROR(this->get_logger(), "Failed to get response from action server.");
+    //     return;
+    // }
+
+    // // Check the response from cancel request
+    // auto cancel_response = future_cancel.get();
+
+    // if (!cancel_response || cancel_response->goals_canceling.empty())
+    // {
+    //     RCLCPP_WARN(this->get_logger(), "Goal cancellation was rejected.");
+    // }
+    // else
+    // {
+    //     RCLCPP_INFO(this->get_logger(), "Goal successfully canceled.");
+    // }
+
+}
+
+    
     void feedback_callback(const rclcpp_action::ClientGoalHandle<custom_service::action::Fibonacci>::SharedPtr, 
         const std::shared_ptr<const custom_service::action::Fibonacci::Feedback> feedback)
         {
@@ -67,7 +115,7 @@ private:
             RCLCPP_INFO(rclcpp::get_logger("rclcpp"), ss.str().c_str());
 
         }
-        void result_callback(const rclcpp_action::ClientGoalHandle<custom_service::action::Fibonacci>::WrappedResult& result)
+    void result_callback(const rclcpp_action::ClientGoalHandle<custom_service::action::Fibonacci>::WrappedResult& result)
         {
             switch(result.code)
             {
@@ -77,6 +125,7 @@ private:
                     return;
                 case rclcpp_action::ResultCode::CANCELED:
                     RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "goal was canceled");
+                    rclcpp::shutdown();
                     return;
                 default:
                     RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "unknown result code");

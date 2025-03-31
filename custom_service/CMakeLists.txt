@@ -23,6 +23,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/IkSw.srv"
   "action/Fibonacci.action"
   "action/RobotTask.action"
+  "action/PlanRobot.action"
   DEPENDENCIES action_msgs std_msgs
 )
 
