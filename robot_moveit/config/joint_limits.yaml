@@ -1,0 +1,50 @@
+# Joints limits
+#
+# Sources:
+#
+#  - Universal Robots e-Series, User Manual, UR10e, Version 5.8
+#    https://s3-eu-west-1.amazonaws.com/ur-support-site/69139/99405_UR10e_User_Manual_en_Global.pdf
+#  - Support > Articles > UR articles > Max. joint torques
+#    https://www.universal-robots.com/articles/ur-articles/max-joint-torques
+#    retrieved: 2020-06-16, last modified: 2020-06-09
+joint_limits:
+  shoulder_pan_joint:
+    # acceleration limits are not publicly available
+    has_velocity_limits: true
+    max_velocity: 10.0
+    has_acceleration_limits: true
+    max_acceleration: 5.0
+  shoulder_lift_joint:
+    # acceleration limits are not publicly available
+    has_velocity_limits: true
+    max_velocity: 10.0
+    has_acceleration_limits: true
+    max_acceleration: 5.0
+    has_position_limits: true
+    max_position: 0.0
+    min_position: -3.14
+
+  elbow_joint:
+    # acceleration limits are not publicly available
+    has_velocity_limits: true
+    max_velocity: 10.0
+    has_acceleration_limits: true
+    max_acceleration: 5.0
+  wrist_1_joint:
+    # acceleration limits are not publicly available
+    has_velocity_limits: true
+    max_velocity: 10.0
+    has_acceleration_limits: true
+    max_acceleration: 5.0
+  wrist_2_joint:
+    # acceleration limits are not publicly available
+    has_velocity_limits: true
+    max_velocity: 10.0
+    has_acceleration_limits: true
+    max_acceleration: 5.0
+  wrist_3_joint:
+    # acceleration limits are not publicly available
+    has_velocity_limits: true
+    max_velocity: 10.0
+    has_acceleration_limits: true
+    max_acceleration: 5.0
