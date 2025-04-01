@@ -1,0 +1,10 @@
+<root BTCPP_format="4" main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <Sequence>
+        <PlanRobot order="0"/>
+        <PlanRobot order="1"/>
+        <PlanRobot order="2"/>
+        <PlanRobot order="0"/>
+    </Sequence>
+  </BehaviorTree>
+</root>

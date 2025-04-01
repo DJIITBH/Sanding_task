@@ -72,6 +72,7 @@ ament_target_dependencies(action_client
   "rclcpp"
   "rclcpp_action"
   "rclcpp_components"
+  "geometry_msgs"
 )
 rclcpp_components_register_node(action_client
 PLUGIN "robot_moveit::ActionClient"
@@ -115,6 +116,7 @@ ament_target_dependencies(robot_server
   "rclcpp_components"
   "moveit_ros_planning_interface"
   "visualization_msgs"
+  "geometry_msgs"
 )
 rclcpp_components_register_node(robot_server
 PLUGIN "robot_moveit::RobotServer"

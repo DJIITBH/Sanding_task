@@ -94,7 +94,7 @@ private:
             //execute the trajectory.
         }
         else{
-            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "planner failed");\
+            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "planner failed");
             return ;
 
         }

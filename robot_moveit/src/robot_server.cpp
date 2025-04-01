@@ -26,13 +26,16 @@ public:
         //goal call back is called when action server receives a new goal 
         // then it decides whether to accept it or reject it then accept call back is executed!
         // if it receives a cancellation request then goal is cancelled using cancel callback function
-        RCLCPP_INFO(rclcpp::get_logger("rclcpp"),"starting the action server");
+
+
+        RCLCPP_INFO(this->get_logger(),"starting the action server");
 
     }
 private:
     rclcpp_action::Server<custom_service::action::PlanRobot>::SharedPtr action_server_;
 
     // member functions..
+
     void marker_pub(const std::shared_ptr<rclcpp::Node>& node,
         const std::vector<std::array<double, 3>>& pts,
         const std::string& frame_id )
@@ -72,7 +75,7 @@ private:
         }
     
     
-    void move_robot(const std::shared_ptr<rclcpp::Node> node)
+    bool move_robot(const std::shared_ptr<rclcpp::Node> node)
     {
         auto move_group_arm = moveit::planning_interface::MoveGroupInterface(node, "arm"); //node, 'name of move group'
         //access and send cmd and view status of particular move_group
@@ -101,7 +104,7 @@ private:
     
         std::vector<geometry_msgs::msg::Pose> approach_waypoints;
     
-        for (int i = 0;i<7;i++){
+        for (int i = 0;i<6;i++){
             target_pose1.position.y = -0.43;
             pts.push_back({target_pose1.position.x, target_pose1.position.y, target_pose1.position.z});
             approach_waypoints.push_back(target_pose1);
@@ -125,35 +128,30 @@ private:
         double fraction = move_group_arm.computeCartesianPath(
             approach_waypoints, eef_step, jump_threshold, trajectory_approach);
     
-        move_group_arm.execute(trajectory_approach);
-    
-        std::vector<double> arm_joint_goal {0.0,-1.57,0.0,-1.57,0.0,0.0};
-    
-        bool arm_within_bounds = move_group_arm.setJointValueTarget(arm_joint_goal); //returns a boolean value
-    
-        if(!arm_within_bounds)
+        // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "yaha hu!");
+        bool arm_plan_success = (move_group_arm.plan(my_plan_arm) == moveit::core::MoveItErrorCode::SUCCESS); //to reach value of joints assigned
+
+        if(arm_plan_success)
         {
-            RCLCPP_WARN(rclcpp::get_logger("rclcpp"), "Target joint pos outside limits");
-            return ;
+             RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "planner succeed, moving the arm!");
+             bool flag = true;
+             move_group_arm.execute(trajectory_approach);
+             return flag;
         }
-        moveit::planning_interface::MoveGroupInterface::Plan arm_plan;
-    
-        bool arm_plan_success = (move_group_arm.plan(arm_plan) == moveit::core::MoveItErrorCode::SUCCESS); //to reach value of joints assigned
-    
-       if(arm_plan_success)
-       {
-            RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "planner succeed, moving the arm!");
-            move_group_arm.move();
-       }
-       else
-       {
-            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "planner failed!");
-            return;
-       }
-    
+        else
+        {
+             RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "planner failed!");
+             bool flag = false;
+             return flag;
+        }
+
+
+        // std::thread execution_thread([this]() {
+        //     move_group_arm.asyncExecute(trajectory_approach);
+        // });
     }
     
-    void quality_check(const std::shared_ptr<rclcpp::Node> node)
+    bool quality_check(const std::shared_ptr<rclcpp::Node> node)
     {
         auto move_group_arm = moveit::planning_interface::MoveGroupInterface(node, "arm"); //node, 'name of move group'
         //access and send cmd and view status of particular move_group
@@ -205,34 +203,25 @@ private:
         double fraction = move_group_arm.computeCartesianPath(
             approach_waypoints, eef_step, jump_threshold, trajectory_approach);
     
-        move_group_arm.execute(trajectory_approach);
-    
-        std::vector<double> arm_joint_goal {0.0,-1.57,0.0,-1.57,0.0,0.0};
-    
-        bool arm_within_bounds = move_group_arm.setJointValueTarget(arm_joint_goal); //returns a boolean value
-    
-        if(!arm_within_bounds)
+
+        bool arm_plan_success = (move_group_arm.plan(my_plan_arm) == moveit::core::MoveItErrorCode::SUCCESS); //to reach value of joints assigned
+
+        if(arm_plan_success)
         {
-            RCLCPP_WARN(rclcpp::get_logger("rclcpp"), "Target joint pos outside limits");
-            return ;
+             RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "planner succeed, moving the arm!");
+             bool flag = true;
+             move_group_arm.execute(trajectory_approach);
+             return flag;
         }
-        moveit::planning_interface::MoveGroupInterface::Plan arm_plan;
-    
-        bool arm_plan_success = (move_group_arm.plan(arm_plan) == moveit::core::MoveItErrorCode::SUCCESS); //to reach value of joints assigned
-    
-       if(arm_plan_success)
-       {
-            RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "planner succeed, moving the arm!");
-            move_group_arm.move();
-       }
-       else
-       {
-            RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "planner failed!");
-            return;
-       }
+        else
+        {
+             RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "planner failed!");
+             bool flag = false;
+             return flag;
+        }
     
     }
-    void home_pos(const std::shared_ptr<rclcpp::Node> node)
+    bool home_pos(const std::shared_ptr<rclcpp::Node> node)
     {
     auto move_group_arm = moveit::planning_interface::MoveGroupInterface(node, "arm"); //node, 'name of move group'
     //access and send cmd and view status of particular move_group
@@ -246,7 +235,7 @@ private:
     if(!arm_within_bounds)
     {
         RCLCPP_WARN(rclcpp::get_logger("rclcpp"), "Target joint pos outside limits");
-        return ;
+        return false;
     }
     moveit::planning_interface::MoveGroupInterface::Plan arm_plan;
 
@@ -255,12 +244,15 @@ private:
    if(arm_plan_success)
    {
         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "planner succeed, moving the arm!");
+        bool flag = true;
         move_group_arm.move();
+        return flag;
    }
    else
    {
         RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "planner failed!");
-        return;
+        bool flag = false;
+        return flag;
    }
 
   }
@@ -286,6 +278,7 @@ private:
 
     void execute(const std::shared_ptr<rclcpp_action::ServerGoalHandle<custom_service::action::PlanRobot>> goal_handle)
     {
+        bool flag = false;
         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "executing goal..");
         // TO MOVE THE ROBOT WE NEED MOVEIT2 API
         auto arm_move_group = moveit::planning_interface::MoveGroupInterface(shared_from_this(), "arm");
@@ -293,17 +286,17 @@ private:
 
         if(goal_handle->get_goal()->task_number == 0)
         {
-            home_pos(shared_from_this());
+            flag = home_pos(shared_from_this());
             //home location..
         }
         else if(goal_handle->get_goal()->task_number == 1)
         {
-            quality_check(shared_from_this()); 
+            flag = quality_check(shared_from_this()); 
             //random location
         }
         else if(goal_handle->get_goal()->task_number == 2)
         {
-            move_robot(shared_from_this()); 
+            flag = move_robot(shared_from_this()); 
             //random location
         }
         else{
@@ -312,9 +305,18 @@ private:
         }
 
         auto result = std::make_shared<custom_service::action::PlanRobot::Result>();
-        result->success = true;
-        goal_handle->succeed(result);
-        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "goal succeeded");
+        result->success = flag;
+        if (flag)
+        {
+            goal_handle->succeed(result);  // Client sees SUCCESS
+        }
+        else
+        {
+            goal_handle->abort(result);  // Explicit failure
+
+        }
+        
+        // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "goal succeeded");
 
     }
     rclcpp_action::CancelResponse cancel_callback(const std::shared_ptr<rclcpp_action::ServerGoalHandle<custom_service::action::PlanRobot>> goal_handle)
