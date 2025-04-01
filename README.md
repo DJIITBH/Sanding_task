@@ -16,6 +16,8 @@ This repository contains the implementation of a simulated environment for a UR1
 - **ros2_control** and related plugins
 
 ## Setup
+![image](https://github.com/user-attachments/assets/877d53f1-d482-49c4-9e8b-384847ca115f)
+
 
 ### 1. Launch the UR10e Robot Arm in Gazebo
 Start the simulated environment with the UR10e robot arm in Gazebo:
