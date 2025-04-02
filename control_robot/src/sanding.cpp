@@ -77,6 +77,8 @@ public:
     //   ss << number << " ";
     // }
     // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "%s", ss.str().c_str());
+    double force_val = feedback->force;
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"),"force feedbaack %f", force_val);
     return NodeStatus::RUNNING;
   }
 };

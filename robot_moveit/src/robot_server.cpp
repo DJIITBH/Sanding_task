@@ -6,6 +6,7 @@
 #include <moveit/move_group_interface/move_group_interface.h>
 #include "visualization_msgs/msg/marker.hpp"
 #include "visualization_msgs/msg/marker_array.hpp"
+#include <geometry_msgs/msg/wrench_stamped.hpp>
 
 #include<thread>
 
@@ -23,7 +24,8 @@ public:
             std::bind(&RobotServer::cancel_callback, this, _1), 
             std::bind(&RobotServer::accept_callback, this, _1)
         );
-        //goal call back is called when action server receives a new goal 
+        subscription_ = this->create_subscription<geometry_msgs::msg::WrenchStamped>(
+            "/jt", 10, std::bind(&RobotServer::topic_callback, this, std::placeholders::_1));        //goal call back is called when action server receives a new goal 
         // then it decides whether to accept it or reject it then accept call back is executed!
         // if it receives a cancellation request then goal is cancelled using cancel callback function
 
@@ -33,6 +35,16 @@ public:
     }
 private:
     rclcpp_action::Server<custom_service::action::PlanRobot>::SharedPtr action_server_;
+    rclcpp::Subscription<geometry_msgs::msg::WrenchStamped>::SharedPtr subscription_;
+    double force = 0;
+
+    void topic_callback(const geometry_msgs::msg::WrenchStamped::SharedPtr msg)
+    {
+        // RCLCPP_INFO(this->get_logger(), "Received WrenchStamped message:");
+        // RCLCPP_INFO(this->get_logger(), "Force: [%.2f, %.2f, %.2f]", msg->wrench.force.x, msg->wrench.force.y, msg->wrench.force.z);
+        // RCLCPP_INFO(this->get_logger(), "Torque: [%.2f, %.2f, %.2f]", msg->wrench.torque.x, msg->wrench.torque.y, msg->wrench.torque.z);
+        force = msg->wrench.force.x;
+    }
 
     // member functions..
 
@@ -279,10 +291,16 @@ private:
     void execute(const std::shared_ptr<rclcpp_action::ServerGoalHandle<custom_service::action::PlanRobot>> goal_handle)
     {
         bool flag = false;
+        rclcpp::Rate loop_rate(1);
         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "executing goal..");
         // TO MOVE THE ROBOT WE NEED MOVEIT2 API
         auto arm_move_group = moveit::planning_interface::MoveGroupInterface(shared_from_this(), "arm");
         std::vector<double> arm_joint_goal;
+
+        auto feedback = std::make_shared<custom_service::action::PlanRobot::Feedback>();
+        auto& force_val = feedback->force;
+
+        force_val = force;
 
         if(goal_handle->get_goal()->task_number == 0)
         {
@@ -303,6 +321,10 @@ private:
             RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "invalid Robot number..");
 
         }
+
+        goal_handle->publish_feedback(feedback);
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "force feedback!");
+        // loop_rate.sleep();
 
         auto result = std::make_shared<custom_service::action::PlanRobot::Result>();
         result->success = flag;

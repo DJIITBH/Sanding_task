@@ -5,4 +5,4 @@ int32 task_number
 bool success
 ---
 #Feedback
-int32 percentage
+float32 force
