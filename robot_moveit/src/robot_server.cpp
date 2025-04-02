@@ -133,7 +133,7 @@ private:
 
         if(arm_plan_success)
         {
-             RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "planner succeed, moving the arm!");
+             RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "planner succeed, Executing Sanding!");
              bool flag = true;
              move_group_arm.execute(trajectory_approach);
              return flag;
@@ -208,7 +208,7 @@ private:
 
         if(arm_plan_success)
         {
-             RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "planner succeed, moving the arm!");
+             RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "planner succeed, Doing Quality Check!");
              bool flag = true;
              move_group_arm.execute(trajectory_approach);
              return flag;
@@ -243,7 +243,7 @@ private:
 
    if(arm_plan_success)
    {
-        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "planner succeed, moving the arm!");
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "planner succeed, Going to safe position!");
         bool flag = true;
         move_group_arm.move();
         return flag;

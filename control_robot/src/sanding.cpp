@@ -57,7 +57,7 @@ public:
     }
     else 
     {
-        return NodeStatus::False;
+        return NodeStatus::FAILURE;
 
     }
   }
